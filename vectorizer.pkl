@@ -1,0 +1,5 @@
+import pickle
+
+# after training
+pickle.dump(vectorizer, open("vectorizer.pkl", "wb"))
+pickle.dump(model, open("trained_spam_classifier_model.pkl", "wb"))
