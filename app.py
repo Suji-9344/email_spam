@@ -3,19 +3,15 @@ import pickle
 import pandas as pd
 
 # -------------------------------
-# Load trained model & vectorizer
+# Load trained model
 # -------------------------------
 @st.cache_resource
-def load_model_and_vectorizer():
+def load_model():
     with open("trained_spam_classifier_model.pkl", "rb") as file:
         model = pickle.load(file)
+    return model
 
-    with open("vectorizer.pkl", "rb") as file:
-        vectorizer = pickle.load(file)
-
-    return model, vectorizer
-
-model, vectorizer = load_model_and_vectorizer()
+model = load_model()
 
 # -------------------------------
 # Streamlit UI
@@ -24,7 +20,7 @@ st.title("📩 Spam Message Classifier")
 st.write("Predict whether a message is Spam or Not Spam")
 
 # -------------------------------
-# Sample dataset
+# Sample dataset (added inside code)
 # -------------------------------
 data = {
     "message": [
@@ -37,6 +33,7 @@ data = {
 }
 
 df = pd.DataFrame(data)
+
 st.subheader("📊 Sample Messages Dataset")
 st.dataframe(df)
 
@@ -47,16 +44,13 @@ st.subheader("✍️ Enter a message to classify")
 user_input = st.text_area("Type your message here")
 
 # -------------------------------
-# Prediction (FIXED)
+# Prediction
 # -------------------------------
 if st.button("Predict"):
     if user_input.strip() == "":
         st.warning("⚠️ Please enter a message")
     else:
-        # ✅ VECTORIZE TEXT (THIS FIXES THE ERROR)
-        user_input_vector = vectorizer.transform([user_input])
-
-        prediction = model.predict(user_input_vector)[0]
+        prediction = model.predict([user_input])[0]
 
         if prediction == 1:
             st.error("🚨 This message is SPAM")
