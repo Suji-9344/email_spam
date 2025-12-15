@@ -3,26 +3,28 @@ import pickle
 import pandas as pd
 
 # -------------------------------
-# Load trained model
+# Load model & vectorizer
 # -------------------------------
 @st.cache_resource
-def load_model():
-    with open("trained_spam_classifier_model.pkl", "rb") as file:
-        model = pickle.load(file)
-    return model
+def load_files():
+    with open("trained_spam_classifier_model.pkl", "rb") as f:
+        model = pickle.load(f)
+    with open("vectorizer.pkl", "rb") as f:
+        vectorizer = pickle.load(f)
+    return model, vectorizer
 
-model = load_model()
+model, vectorizer = load_files()
 
 # -------------------------------
-# Streamlit UI
+# UI
 # -------------------------------
 st.title("📩 Spam Message Classifier")
 st.write("Predict whether a message is Spam or Not Spam")
 
 # -------------------------------
-# Sample dataset (added inside code)
+# Sample dataset
 # -------------------------------
-data = {
+df = pd.DataFrame({
     "message": [
         "Congratulations! You won a free lottery ticket",
         "Hi, are we meeting tomorrow?",
@@ -30,35 +32,30 @@ data = {
         "Please review the attached document",
         "Win cash now!!! Limited offer"
     ]
-}
+})
 
-df = pd.DataFrame(data)
-
-st.subheader("📊 Sample Messages Dataset")
+st.subheader("📊 Sample Messages")
 st.dataframe(df)
 
 # -------------------------------
-# User Input
+# User input
 # -------------------------------
-st.subheader("✍️ Enter a message to classify")
-user_input = st.text_area("Type your message here")
+user_input = st.text_area("✍️ Enter your message")
 
 # -------------------------------
-# Prediction
+# Prediction (FIXED)
 # -------------------------------
 if st.button("Predict"):
     if user_input.strip() == "":
         st.warning("⚠️ Please enter a message")
     else:
-        prediction = model.predict([user_input])[0]
+        input_vector = vectorizer.transform([user_input])  # ✅ REQUIRED
+        prediction = model.predict(input_vector)[0]        # ✅ FIXED
 
         if prediction == 1:
             st.error("🚨 This message is SPAM")
         else:
             st.success("✅ This message is NOT SPAM")
 
-# -------------------------------
-# Footer
-# -------------------------------
 st.markdown("---")
 st.markdown("Developed using Streamlit & Machine Learning")
