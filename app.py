@@ -1,4 +1,4 @@
-[1:08 PM, 12/15/2025] Suji🥰: import streamlit as st
+import streamlit as st
 import pickle
 import pandas as pd
 
