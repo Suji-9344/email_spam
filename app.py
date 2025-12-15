@@ -1,36 +1,64 @@
 import streamlit as st
 import pickle
+import pandas as pd
 
-# App title
-st.title("📧 Email Spam Detection App")
-st.write("Check whether an email message is **Spam** or **Ham**")
-
-# Load trained model and vectorizer
+# -------------------------------
+# Load trained model
+# -------------------------------
 @st.cache_resource
 def load_model():
     with open("trained_spam_classifier_model.pkl", "rb") as file:
-        data = pickle.load(file)
-    return data
+        model = pickle.load(file)
+    return model
 
-model_data = load_model()
+model = load_model()
 
-model = model_data["model"]
-vectorizer = model_data["vectorizer"]
+# -------------------------------
+# Streamlit UI
+# -------------------------------
+st.title("📩 Spam Message Classifier")
+st.write("Predict whether a message is Spam or Not Spam")
 
-# User input
-st.subheader("✉️ Enter Email Text")
-email_text = st.text_area("Type your email message here")
+# -------------------------------
+# Sample dataset (added inside code)
+# -------------------------------
+data = {
+    "message": [
+        "Congratulations! You won a free lottery ticket",
+        "Hi, are we meeting tomorrow?",
+        "URGENT! Call this number to claim your prize",
+        "Please review the attached document",
+        "Win cash now!!! Limited offer"
+    ]
+}
 
+df = pd.DataFrame(data)
+
+st.subheader("📊 Sample Messages Dataset")
+st.dataframe(df)
+
+# -------------------------------
+# User Input
+# -------------------------------
+st.subheader("✍️ Enter a message to classify")
+user_input = st.text_area("Type your message here")
+
+# -------------------------------
 # Prediction
+# -------------------------------
 if st.button("Predict"):
-    if email_text.strip() == "":
-        st.warning("⚠️ Please enter an email message")
+    if user_input.strip() == "":
+        st.warning("⚠️ Please enter a message")
     else:
-        email_vector = vectorizer.transform([email_text])
-        prediction = model.predict(email_vector)[0]
+        prediction = model.predict([user_input])[0]
 
         if prediction == 1:
-            st.error("🚨 This email is SPAM")
+            st.error("🚨 This message is SPAM")
         else:
-            st.success("✅ This email is NOT SPAM (Ham)")
+            st.success("✅ This message is NOT SPAM")
 
+# -------------------------------
+# Footer
+# -------------------------------
+st.markdown("---")
+st.markdown("Developed using Streamlit & Machine Learning")
