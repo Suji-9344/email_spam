@@ -26,29 +26,39 @@ data = {
     "message": [
         "Congratulations! You won a free lottery ticket",
         "Hi, are we meeting tomorrow?",
-        "URGENT! Call this number …
-[1:58 PM, 12/15/2025] Suji🥰: import streamlit as st
-import pickle
+        "URGENT! Call this number to claim your prize",
+        "Please review the attached document",
+        "Win cash now!!! Limited offer"
+    ]
+}
 
-# Load model and vectorizer
-with open("email_spam_classifier_model.pkl", "rb") as f:
-    data = pickle.load(f)
+df = pd.DataFrame(data)
 
-model = data["model"]
-vectorizer = data["vectorizer"]
+st.subheader("📊 Sample Messages Dataset")
+st.dataframe(df)
 
-st.title("📧 Email Spam Classifier")
+# -------------------------------
+# User Input
+# -------------------------------
+st.subheader("✍️ Enter a message to classify")
+user_input = st.text_area("Type your message here")
 
-user_input = st.text_area("Enter email message")
-
+# -------------------------------
+# Prediction
+# -------------------------------
 if st.button("Predict"):
     if user_input.strip() == "":
-        st.warning("Please enter an email message")
+        st.warning("⚠️ Please enter a message")
     else:
-        input_vector = vectorizer.transform([user_input])
-        prediction = model.predict(input_vector)[0]
+        prediction = model.predict([user_input])[0]
 
-        if prediction == 1 or prediction == "spam":
-            st.error("🚨 SPAM EMAIL")
+        if prediction == 1:
+            st.error("🚨 This message is SPAM")
         else:
-            st.success("✅ NOT SPAM (HAM)")
+            st.success("✅ This message is NOT SPAM")
+
+# -------------------------------
+# Footer
+# -------------------------------
+st.markdown("---")
+st.markdown("Developed using Streamlit & Machine Learning")
