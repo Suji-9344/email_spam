@@ -1,4 +1,33 @@
-import streamlit as st
+[1:08 PM, 12/15/2025] Suji🥰: import streamlit as st
+import pickle
+import pandas as pd
+
+# -------------------------------
+# Load trained model
+# -------------------------------
+@st.cache_resource
+def load_model():
+    with open("trained_spam_classifier_model.pkl", "rb") as file:
+        model = pickle.load(file)
+    return model
+
+model = load_model()
+
+# -------------------------------
+# Streamlit UI
+# -------------------------------
+st.title("📩 Spam Message Classifier")
+st.write("Predict whether a message is Spam or Not Spam")
+
+# -------------------------------
+# Sample dataset (added inside code)
+# -------------------------------
+data = {
+    "message": [
+        "Congratulations! You won a free lottery ticket",
+        "Hi, are we meeting tomorrow?",
+        "URGENT! Call this number …
+[1:58 PM, 12/15/2025] Suji🥰: import streamlit as st
 import pickle
 
 # Load model and vectorizer
