@@ -1,64 +1,85 @@
 import streamlit as st
-import pickle
 import pandas as pd
-import os
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 
-# -------------------------------
-# Load model & vectorizer safely
-# -------------------------------
-@st.cache_resource
-def load_files():
-    try:
-        if not os.path.exists("trained_spam_classifier_model.pkl"):
-            st.error("❌ trained_spam_classifier_model.pkl not found")
-            st.stop()
+st.set_page_config(page_title="Spam Classifier")
+st.title("📩 SMS Spam Classifier")
+st.write("This app predicts whether a message is SPAM or NOT SPAM")
 
-        if not os.path.exists("vectorizer.pkl"):
-            st.error("❌ vectorizer.pkl not found")
-            st.stop()
-
-        with open("trained_spam_classifier_model.pkl", "rb") as f:
-            model = pickle.load(f)
-
-        with open("vectorizer.pkl", "rb") as f:
-            vectorizer = pickle.load(f)
-
-        return model, vectorizer
-
-    except Exception as e:
-        st.error("❌ Failed to load model/vectorizer")
-        st.exception(e)
-        st.stop()
-
-model, vectorizer = load_files()
-
-# -------------------------------
-# UI
-# -------------------------------
-st.title("📩 Spam Message Classifier")
-
-# Sample data
-df = pd.DataFrame({
+# ----------------------------
+# Dataset (Built-In)
+# ----------------------------
+data = {
+    "label": ["ham","ham","spam","ham","spam","spam","ham","spam","ham","ham",
+              "spam","ham","spam","ham","ham","spam","spam","ham","ham","spam"],
     "message": [
-        "Congratulations! You won a free lottery ticket",
-        "Hi, are we meeting tomorrow?",
-        "URGENT! Call this number to claim your prize"
+        "Hey, are you coming tomorrow?",
+        "Lets have lunch today",
+        "Congratulations! You won a free lottery",
+        "I will call you later",
+        "URGENT!!! Claim your prize now",
+        "Win a brand new iPhone click here",
+        "Don't forget our meeting",
+        "Free entry in 2 crore contest",
+        "See you soon",
+        "How are you?",
+        "You have been selected for cash reward",
+        "Can we talk now?",
+        "Call this number to get your prize",
+        "Happy birthday!",
+        "Good night",
+        "Hurry! Only few hours left",
+        "Exclusive offer just for you",
+        "Where are you now?",
+        "Let's study together",
+        "Claim your reward now!"
     ]
-})
-st.dataframe(df)
+}
 
-# Input
-user_input = st.text_area("✍️ Enter your message")
+df = pd.DataFrame(data)
 
-# Predict
+with st.expander("📊 View Dataset"):
+    st.dataframe(df)
+
+# ----------------------------
+# Preprocessing
+# ----------------------------
+df["label_num"] = df["label"].map({"ham": 0, "spam": 1})
+
+X = df["message"]
+y = df["label_num"]
+
+vectorizer = TfidfVectorizer()
+X_vec = vectorizer.fit_transform(X)
+
+# Train Model
+model = LogisticRegression()
+model.fit(X_vec, y)
+
+# ----------------------------
+# Evaluation
+# ----------------------------
+st.subheader("📈 Model Performance")
+y_pred = model.predict(X_vec)
+st.text(classification_report(y, y_pred))
+
+# ----------------------------
+# USER INPUT
+# ----------------------------
+st.subheader("✍️ Enter Message to Check")
+user_input = st.text_area("Type message here...")
+
 if st.button("Predict"):
     if user_input.strip() == "":
-        st.warning("⚠️ Enter a message")
+        st.warning("⚠️ Please enter a message")
     else:
-        input_vector = vectorizer.transform([user_input])
-        prediction = model.predict(input_vector)[0]
+        user_vec = vectorizer.transform([user_input])
+        result = model.predict(user_vec)[0]
 
-        if prediction == 1:
-            st.error("🚨 SPAM")
+        if result == 1:
+            st.error("🚨 SPAM Message")
         else:
-            st.success("✅ NOT SPAM")
+            st.success("✅ NOT SPAM Message")
