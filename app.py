@@ -1,20 +1,23 @@
 import streamlit as st
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, confusion_matrix
 
 st.set_page_config(page_title="Spam Classifier")
 st.title("📩 SMS Spam Classifier")
-st.write("This app predicts whether a message is SPAM or NOT SPAM")
+st.write("This app predicts whether a message is **SPAM** or **NOT SPAM**")
 
-# ----------------------------
-# Dataset (Built-In)
-# ----------------------------
+# -----------------------------------------
+# Dataset
+# -----------------------------------------
 data = {
-    "label": ["ham","ham","spam","ham","spam","spam","ham","spam","ham","ham",
-              "spam","ham","spam","ham","ham","spam","spam","ham","ham","spam"],
+    "label": [
+        "ham","ham","spam","ham","spam","spam","ham","spam","ham","ham",
+        "spam","ham","spam","ham","ham","spam","spam","ham","ham","spam",
+        "spam","ham","spam","ham","spam","ham","ham","spam","ham","spam"
+    ],
     "message": [
         "Hey, are you coming tomorrow?",
         "Lets have lunch today",
@@ -35,7 +38,17 @@ data = {
         "Exclusive offer just for you",
         "Where are you now?",
         "Let's study together",
-        "Claim your reward now!"
+        "Claim your reward now!",
+        "WIN cash now click here",
+        "Meet me at 6pm",
+        "Free recharge offer limited time",
+        "Call me when free",
+        "You won 500000 cash prize",
+        "Good morning",
+        "Shall we go out today?",
+        "FREE vacation package claim now",
+        "See you in class",
+        "Final reminder – prize waiting!"
     ]
 }
 
@@ -44,10 +57,10 @@ df = pd.DataFrame(data)
 with st.expander("📊 View Dataset"):
     st.dataframe(df)
 
-# ----------------------------
-# Preprocessing
-# ----------------------------
-df["label_num"] = df["label"].map({"ham": 0, "spam": 1})
+# -----------------------------------------
+# Preprocess
+# -----------------------------------------
+df["label_num"] = df["label"].map({"ham":0, "spam":1})
 
 X = df["message"]
 y = df["label_num"]
@@ -56,19 +69,19 @@ vectorizer = TfidfVectorizer()
 X_vec = vectorizer.fit_transform(X)
 
 # Train Model
-model = LogisticRegression()
+model = MultinomialNB()
 model.fit(X_vec, y)
 
-# ----------------------------
-# Evaluation
-# ----------------------------
+# -----------------------------------------
+# Model Evaluation
+# -----------------------------------------
 st.subheader("📈 Model Performance")
-y_pred = model.predict(X_vec)
-st.text(classification_report(y, y_pred))
+pred = model.predict(X_vec)
+st.text(classification_report(y, pred))
 
-# ----------------------------
-# USER INPUT
-# ----------------------------
+# -----------------------------------------
+# User Input
+# -----------------------------------------
 st.subheader("✍️ Enter Message to Check")
 user_input = st.text_area("Type message here...")
 
@@ -76,10 +89,10 @@ if st.button("Predict"):
     if user_input.strip() == "":
         st.warning("⚠️ Please enter a message")
     else:
-        user_vec = vectorizer.transform([user_input])
-        result = model.predict(user_vec)[0]
+        text = vectorizer.transform([user_input])
+        result = model.predict(text)[0]
 
         if result == 1:
-            st.error("🚨 SPAM Message")
+            st.error("🚨 SPAM Message Detected")
         else:
             st.success("✅ NOT SPAM Message")
