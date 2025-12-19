@@ -41,4 +41,4 @@ data = {
         "Good morning",
 
         # More spam
-        "free recharge offer
+        "free recharge offer"
