@@ -1,28 +1,94 @@
 import streamlit as st
-import pickle
-import numpy as np
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
 
-st.title("📧 Email Spam Classification App")
+st.set_page_config(page_title="Spam + Threat Detector")
+st.title("📩 SMS Spam / Threat Message Classifier")
 
-# Load Model Safely
-@st.cache_resource
-def load_model():
-    with open("model.pkl","rb") as file:
-        return pickle.load(file)
+# --------------------- DATASET ---------------------
+st.subheader("📊 Training Dataset Used")
 
-model = load_model()
+data = {
+    "label": [
+        "ham","ham","spam","spam","spam","spam","ham","ham","spam","spam",
+        "spam","spam","spam","ham","ham","spam","spam","spam","ham","ham",
+        "spam","spam","spam","spam","spam","ham","ham","ham","spam","spam"
+    ],
+    "message": [
+        "Hi how are you",
+        "Are we meeting tomorrow?",
+        "Congratulations! You won a lottery",
+        "Claim your free reward now",
+        "Win iPhone click link",
+        "Free prize waiting for you",
+        "Let's go to college",
+        "Happy birthday",
+        "URGENT! Claim cash now",
+        "Final reminder your prize",
+        "I will kill you",
+        "You will be dead soon",
+        "We will attack you",
+        "I hate you",
+        "Don't message me again",
+        "Modiji was dead",
+        "I will destroy you",
+        "Bomb blast warning",
+        "See you soon",
+        "Good morning",
+        "free recharge offer",
+        "lottery ticket winner",
+        "urgent call now",
+        "exclusive reward waiting",
+        "click here to win",
+        "Meet me in class",
+        "See you tomorrow",
+        "Call me later",
+        "Final prize claim today",
+        "Hurry offer ends soon"
+    ]
+}
 
-st.write("Enter email text to check whether it is Spam or Not Spam:")
+df = pd.DataFrame(data)
+st.dataframe(df)
 
-email_text = st.text_area("✉️ Email Content")
+# --------------------- MODEL ---------------------
+df["label_num"] = df["label"].map({"ham":0, "spam":1})
+
+X = df["message"]
+y = df["label_num"]
+
+vectorizer = TfidfVectorizer()
+X_vec = vectorizer.fit_transform(X)
+
+model = MultinomialNB()
+model.fit(X_vec, y)
+
+# --------------------- THREAT RULE ---------------------
+danger_words = [
+    "kill","dead","murder","attack","bomb",
+    "terror","die","destroy","threat","warning"
+]
+
+def is_dangerous(text):
+    text = text.lower()
+    return any(word in text for word in danger_words)
+
+# --------------------- USER INPUT ---------------------
+st.subheader("✍️ Enter Message")
+msg = st.text_area("Type message here...")
 
 if st.button("Predict"):
-    if email_text.strip() == "":
-        st.error("Please enter an email text")
+    if msg.strip() == "":
+        st.warning("Enter a message")
     else:
-        result = model.predict([email_text])[0]
-
-        if result == 1:
-            st.error("🚨 This is a SPAM Email")
+        if is_dangerous(msg):
+            st.error("🚨 DANGEROUS / THREAT MESSAGE (SPAM)")
         else:
-            st.success("✔️ This is NOT a Spam Email")
+            v = vectorizer.transform([msg])
+            result = model.predict(v)[0]
+
+            if result == 1:
+                st.error("🚨 SPAM MESSAGE")
+            else:
+                st.success("✅ NOT SPAM MESSAGE")
